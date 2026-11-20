@@ -31,6 +31,18 @@ import type {
 } from '../arcade/types';
 import { TiltedPinesRunner } from './TiltedPinesRunner';
 import { IframeGameRunner } from './IframeGameRunner';
+import { U7_STATIC_CATALOG } from '../u7/u7StaticCatalog';
+
+const STATIC_INITIAL_GAMES: ArcadeGameMeta[] = mergeDriveU7Catalog(
+  ARCADE_GAMES,
+  U7_STATIC_CATALOG.map((g) => ({
+    slug: g.slug,
+    title: g.title,
+    category: g.category,
+    rank: g.rank,
+    imgUrl: '',
+  })),
+);
 
 interface ArcadePortalProps {
   initialGameId: ArcadeGameId | null;
@@ -58,7 +70,7 @@ export function ArcadePortal({
   initialGameId,
   autoStartTiltedPines,
 }: ArcadePortalProps) {
-  const [catalogGames, setCatalogGames] = useState<ArcadeGameMeta[]>(ARCADE_GAMES);
+  const [catalogGames, setCatalogGames] = useState<ArcadeGameMeta[]>(STATIC_INITIAL_GAMES);
   const [activeGameId, setActiveGameId] = useState<ArcadeGameId | null>(initialGameId);
   const [category, setCategory] = useState<ArcadeCategory>('all');
   const [query, setQuery] = useState('');
@@ -72,19 +84,22 @@ export function ArcadePortal({
   const stageContainerRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Hydrate full Drive U-7 homepage lineup dynamically
+  // Hydrate proxied Drive U-7 thumbnails & live updates when backend API is present
   useEffect(() => {
     if (autoStartTiltedPines) return;
     let cancelled = false;
-    fetch('/api/u7/catalog')
-      .then((res) => (res.ok ? res.json() : null))
+    fetch('./api/u7/catalog')
+      .then((res) => {
+        const ct = res.headers.get('content-type') || '';
+        return res.ok && ct.includes('application/json') ? res.json() : null;
+      })
       .then((data: { games?: RemoteU7CatalogEntry[] } | null) => {
         if (!cancelled && data && Array.isArray(data.games) && data.games.length > 0) {
           setCatalogGames(mergeDriveU7Catalog(ARCADE_GAMES, data.games));
         }
       })
       .catch(() => {
-        // Keep built-in curated catalog if offline
+        // Static build continues seamlessly with STATIC_INITIAL_GAMES
       });
     return () => {
       cancelled = true;
@@ -484,7 +499,7 @@ export function ArcadePortal({
                 <div className="absolute inset-0 bg-gradient-to-t from-[#121826] via-[#121826]/30 to-transparent" />
                 <div className="absolute top-3.5 left-3.5 flex items-center gap-2 bg-[#0b0f19]/90 border border-yellow-400/50 rounded-lg px-2.5 py-1">
                   <img
-                    src="/assets/aistudio/images__2__9151d280.jpeg"
+                    src="./assets/aistudio/images__2__9151d280.jpeg"
                     alt="Neegy skin"
                     className="w-5 h-5 rounded object-cover"
                   />
@@ -541,6 +556,7 @@ export function ArcadePortal({
                     <img
                       src={game.coverUrl}
                       alt={game.title}
+                      referrerPolicy="no-referrer"
                       onError={(e) => {
                         if (game.fallbackCoverUrl && e.currentTarget.src !== game.fallbackCoverUrl) {
                           e.currentTarget.src = game.fallbackCoverUrl;
@@ -652,6 +668,7 @@ export function ArcadePortal({
                         src={game.coverUrl}
                         alt={game.title}
                         loading="lazy"
+                        referrerPolicy="no-referrer"
                         onError={(e) => {
                           if (game.fallbackCoverUrl && e.currentTarget.src !== game.fallbackCoverUrl) {
                             e.currentTarget.src = game.fallbackCoverUrl;

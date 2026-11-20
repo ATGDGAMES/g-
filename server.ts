@@ -11,7 +11,7 @@ import {
   sanitizeU7GameHtml,
   unwrapGadgetXml,
   type ParsedU7HomeGame,
-} from './src/u7/u7Sanitizer';
+} from './src/u7/u7Sanitizer.ts';
 
 const U7_BASE_URL = 'https://sites.google.com/view/drive-u-7-home';
 const CACHE_TTL_MS = 30 * 60 * 1000;
@@ -149,7 +149,7 @@ async function startServer() {
         title: g.title,
         category: g.category,
         rank: g.rank,
-        imgUrl: g.rawImgUrl ? `/api/u7/thumb?url=${encodeURIComponent(g.rawImgUrl)}` : '',
+        imgUrl: g.rawImgUrl ? `./api/u7/thumb?url=${encodeURIComponent(g.rawImgUrl)}` : '',
         rawImgUrl: g.rawImgUrl,
       }));
       res.json({ games, count: games.length });
@@ -480,7 +480,11 @@ async function startServer() {
   } else {
     const distDir = path.resolve(__dirname, 'dist');
     app.use(express.static(distDir));
-    app.get('*', (_req, res) => {
+    app.get('*', (req, res) => {
+      if (req.path.startsWith('/api/')) {
+        res.status(404).json({ error: 'Not found' });
+        return;
+      }
       res.sendFile(path.join(distDir, 'index.html'));
     });
   }

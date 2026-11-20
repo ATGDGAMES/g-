@@ -23,7 +23,7 @@ test('arcade catalog includes Tilted Pines flagship plus Drive U-7 hits GTA, Mad
   ]) {
     assert.equal(isValidArcadeGameId(id), true);
     const game = getArcadeGame(id);
-    assert.ok(game.coverUrl.startsWith('/src/assets/images/cover_'));
+    assert.ok(game.coverUrl.startsWith('./src/assets/images/cover_'));
   }
   assert.equal(getArcadeGame('tilted-pines').is3DFlagship, true);
   assert.equal(getArcadeGame('driving-games/mad-pursuit').u7Slug, 'driving-games/mad-pursuit');
@@ -37,20 +37,20 @@ test('mergeDriveU7Catalog updates live Drive U-7 thumbnails and appends remainin
       title: 'Mad Pursuit',
       category: 'driving',
       rank: 4,
-      imgUrl: '/api/u7/thumb?url=mp',
+      imgUrl: './api/u7/thumb?url=mp',
     },
     {
       slug: 'football-bros',
       title: 'Football Bros',
       category: 'sports',
       rank: 8,
-      imgUrl: '/api/u7/thumb?url=fb',
+      imgUrl: './api/u7/thumb?url=fb',
     },
   ]);
 
   const mp = getArcadeGame('driving-games/mad-pursuit', merged);
-  assert.equal(mp.coverUrl, '/api/u7/thumb?url=mp');
-  assert.equal(mp.fallbackCoverUrl?.startsWith('/src/assets/images/cover_'), true);
+  assert.equal(mp.coverUrl, './api/u7/thumb?url=mp');
+  assert.equal(mp.fallbackCoverUrl?.startsWith('./src/assets/images/cover_'), true);
 
   const fb = getArcadeGame('football-bros', merged);
   assert.equal(fb.title, 'Football Bros');

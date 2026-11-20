@@ -169,7 +169,7 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({
                     >
                       {skin.imageUrl ? (
                         <img
-                          src={skin.imageUrl}
+                          src={skin.imageUrl.startsWith('/') ? `.${skin.imageUrl}` : skin.imageUrl}
                           alt={skin.name}
                           className="w-full h-full object-cover object-top"
                         />
